@@ -13,14 +13,11 @@ st.set_page_config(
 )
 
 # --- Fictional API Key Loading ---
-# In a real app deployed on Streamlit Cloud, the key would be in st.secrets
-# For local development, you might use a .env file.
 # This code assumes the key is correctly set in your deployment environment (e.g., Streamlit Secrets).
 try:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except Exception:
     # This is a fallback for local testing if you don't have st.secrets set up
-    # It assumes you have a .env file.
     from dotenv import load_dotenv
     load_dotenv()
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -31,7 +28,6 @@ except Exception:
 
 
 # --- Logging Setup ---
-# This part remains the same for data collection.
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -88,24 +84,24 @@ def show_landing_page():
     st.markdown(
         """
         You have been invited to participate in a research project that explores how using a Large Language Model (LLM) 
-        [cite_start]during a learning task affects the ability to recall knowledge 48 hours later[cite: 146]. The findings will help 
-        [cite_start]design evidence-based guidance for the effective use of AI tools in education[cite: 148].
+        during a learning task affects the ability to recall knowledge 48 hours later. The findings will help 
+        design evidence-based guidance for the effective use of AI tools in education.
         """
     )
 
     st.subheader("What Will You Be Doing?")
     st.markdown(
         """
-        [cite_start]This study is a controlled experiment where you will first engage in independent study of provided materials on the topic of **Neuroeconomics**[cite: 151]. 
-        [cite_start]Neuroeconomics is an interdisciplinary field that combines neuroscience, economics, and psychology to understand human decision-making[cite: 136].
+        This study is a controlled experiment where you will first engage in independent study of provided materials on the topic of **Neuroeconomics**. 
+        Neuroeconomics is an interdisciplinary field that combines neuroscience, economics, and psychology to understand human decision-making.
         
         After the study period, you will complete a series of analytical tasks, including:
-        * [cite_start]Analyzing business case studies where decision biases may have been involved[cite: 140].
-        * [cite_start]Designing a simple experiment to test a neuroeconomic principle[cite: 141].
-        * [cite_start]Developing strategic recommendations based on what you have learned[cite: 142].
-
-        [cite_start]Your group has been assigned to use this chat interface to assist you during the application tasks[cite: 3]. Every interaction (your prompts and the AI's responses) 
-        [cite_start]will be logged for later analysis to see which patterns of use predict better recall[cite: 147].
+        * Analyzing business case studies where decision biases may have been involved.
+        * Designing a simple experiment to test a neuroeconomic principle.
+        * Developing strategic recommendations based on what you have learned.
+        
+        Your group has been assigned to use this chat interface to assist you during the application tasks. Every interaction (your prompts and the AI's responses) 
+        will be logged for later analysis to see which patterns of use predict better recall.
         """
     )
 
@@ -113,18 +109,37 @@ def show_landing_page():
 
     if st.button("Proceed to Chat Interface"):
         st.session_state.page = "Chat"
-        st.experimental_rerun()
+        st.rerun() # <-- FIXED: Changed from st.experimental_rerun() to st.rerun()
 
 
 def show_chat_interface():
     """
     Displays the main chat interface for interacting with the LLM.
     """
+    st.sidebar.header("About this Study")
+    st.sidebar.info(
+        """
+        This research explores how interacting with an LLM affects knowledge recall. 
+        Your anonymous interaction logs are collected to help us understand which usage patterns 
+        lead to better learning outcomes.
+        """
+    )
+    st.sidebar.header("Contact Information")
+    st.sidebar.markdown(
+        """
+        **Chief Investigator:**
+        Vangelis Tsiligkiris
+        
+        For any questions or concerns, please contact:
+        vangelis.tsiligiris@ntu.ac.uk
+        """
+    )
+    
     st.title("Neuroeconomics Learning Assistant")
     st.markdown(
         """
         Use this interface to ask questions and get help with the application tasks. This assistant is powered by **OpenAI's GPT-4 model** (ChatGPT). 
-        [cite_start]Remember, all of your on-screen activity (prompts, timestamps, and model replies) is being recorded automatically[cite: 152].
+        Remember, all of your on-screen activity (prompts, timestamps, and model replies) is being recorded automatically.
         """
     )
     
