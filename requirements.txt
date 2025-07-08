@@ -3,5 +3,4 @@ openai>=1.0.0
 python-dotenv
 pandas>=2.2.0
 google-generativeai
-streamlit-drawable-canvas
 Pillow
