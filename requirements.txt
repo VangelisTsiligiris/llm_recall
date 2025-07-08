@@ -2,3 +2,5 @@ streamlit
 openai>=1.0.0
 python-dotenv
 pandas>=2.2.0
+gspread
+google-auth-oauthlib
