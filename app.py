@@ -1,27 +1,3 @@
-Yes, enriching the data you collect is a great way to gain deeper insights into how students are using the LLM. We can update the app to capture metrics like response time and the length of prompts and responses. This will help you analyze the interaction style and depth of engagement.
-
-First, you'll need to **add the new columns** to your "LLM Recall Study Logs" Google Sheet.
-
-### **New Spreadsheet Headers**
-
-Update the first row of your Google Sheet with the following headers in this exact order:
-
-1.  **Timestamp** (Existing)
-2.  **Participant\_ID** (Existing)
-3.  **Turn\_Count** (New: Tracks the number of back-and-forth interactions)
-4.  **Prompt** (Existing)
-5.  **Response** (Existing)
-6.  **Prompt\_Length\_Chars** (New: The number of characters in the user's prompt)
-7.  **Response\_Length\_Chars** (New: The number of characters in the AI's response)
-8.  **Response\_Duration\_MS** (New: The time in milliseconds the AI took to generate a response)
-
------
-
-### **Updated `app.py` Code**
-
-Now, replace the entire contents of your `app.py` file with the code below. I've added the logic to calculate and log these new data points.
-
-```python
 import streamlit as st
 import uuid
 import datetime
