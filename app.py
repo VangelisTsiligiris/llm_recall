@@ -4,32 +4,35 @@ import json
 import datetime
 import os
 from openai import OpenAI
+import gspread
+from google.oauth2.service_account import Credentials
 
 # --- Page Configuration ---
-# Set the title and layout for the browser tab. This should be the first Streamlit command.
 st.set_page_config(
     page_title="Neuroeconomics Learning Study",
     layout="wide"
 )
 
-# --- Fictional API Key Loading ---
-# This code assumes the key is correctly set in your deployment environment (e.g., Streamlit Secrets).
+# --- Authentication and Clients ---
+# Authenticate with OpenAI using Streamlit Secrets
 try:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except Exception:
-    # This is a fallback for local testing if you don't have st.secrets set up
-    from dotenv import load_dotenv
-    load_dotenv()
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    if not OPENAI_API_KEY:
-        st.error("OpenAI API key is not set. Please set it in your environment or Streamlit Secrets.")
-        st.stop()
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    st.error("OpenAI API key is not set in Streamlit Secrets. Please add it and reboot the app.")
+    st.stop()
 
-
-# --- Logging Setup ---
-LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
+# Authenticate with Google Sheets using Streamlit Secrets
+try:
+    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"], scopes=scopes
+    )
+    gc = gspread.authorize(creds)
+    # *** IMPORTANT: UPDATE THIS WITH THE EXACT NAME OF YOUR GOOGLE SHEET ***
+    gsheet = gc.open("LLM Recall Study Logs").sheet1
+except Exception as e:
+    st.error(f"Failed to connect to Google Sheets. Please ensure your 'gcp_service_account' secret is configured correctly. Error: {e}")
+    st.stop()
 
 
 # --- Core Functions ---
@@ -48,22 +51,24 @@ def get_llm_response(chat_history, model="gpt-4"):
         st.error(f"Error calling LLM API: {str(e)}")
         return f"Error: {str(e)}"
 
+# --- MODIFIED FUNCTION ---
 def log_interaction(user_id, prompt, response):
     """
-    Log user interaction to a user-specific JSONL file.
+    Logs a new interaction as a row in the configured Google Sheet.
     """
-    log_entry = {
-        "timestamp": datetime.datetime.now().isoformat(),
-        "anonymized_user_id": user_id,
-        "prompt": prompt,
-        "response": response
-    }
-    log_file = os.path.join(LOG_DIR, f"log_{user_id}.jsonl")
     try:
-        with open(log_file, 'a') as f:
-            f.write(json.dumps(log_entry) + "\n")
+        # Create a new row with the interaction data
+        row_to_insert = [
+            datetime.datetime.now().isoformat(),
+            user_id,
+            prompt,
+            response,
+        ]
+        gsheet.append_row(row_to_insert)
     except Exception as e:
-        st.error(f"Error logging interaction: {str(e)}")
+        # Show an error in the app if logging fails, but don't stop the app
+        st.error(f"Failed to log interaction to Google Sheet. Error: {e}")
+
 
 # --- Session State Initialization ---
 # Ensures that each user gets a unique ID and their own chat history.
@@ -109,7 +114,7 @@ def show_landing_page():
 
     if st.button("Proceed to Chat Interface"):
         st.session_state.page = "Chat"
-        st.rerun() # <-- FIXED: Changed from st.experimental_rerun() to st.rerun()
+        st.rerun()
 
 
 def show_chat_interface():
@@ -169,7 +174,7 @@ def show_chat_interface():
         with st.chat_message("assistant"):
             st.write(response)
         
-        # Log the interaction
+        # Log the interaction to Google Sheets
         log_interaction(st.session_state.anonymized_user_id, prompt, response)
 
 
