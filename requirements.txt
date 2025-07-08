@@ -4,3 +4,4 @@ python-dotenv
 pandas>=2.2.0
 google-generativeai
 Pillow
+streamlit-copy-button
