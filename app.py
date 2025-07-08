@@ -1,6 +1,31 @@
+Yes, enriching the data you collect is a great way to gain deeper insights into how students are using the LLM. We can update the app to capture metrics like response time and the length of prompts and responses. This will help you analyze the interaction style and depth of engagement.
+
+First, you'll need to **add the new columns** to your "LLM Recall Study Logs" Google Sheet.
+
+### **New Spreadsheet Headers**
+
+Update the first row of your Google Sheet with the following headers in this exact order:
+
+1.  **Timestamp** (Existing)
+2.  **Participant\_ID** (Existing)
+3.  **Turn\_Count** (New: Tracks the number of back-and-forth interactions)
+4.  **Prompt** (Existing)
+5.  **Response** (Existing)
+6.  **Prompt\_Length\_Chars** (New: The number of characters in the user's prompt)
+7.  **Response\_Length\_Chars** (New: The number of characters in the AI's response)
+8.  **Response\_Duration\_MS** (New: The time in milliseconds the AI took to generate a response)
+
+-----
+
+### **Updated `app.py` Code**
+
+Now, replace the entire contents of your `app.py` file with the code below. I've added the logic to calculate and log these new data points.
+
+```python
 import streamlit as st
 import uuid
 import datetime
+import time # Import the time library
 import os
 from openai import OpenAI
 import gspread
@@ -22,8 +47,6 @@ except Exception:
 
 # Authenticate with Google Sheets using Streamlit Secrets
 try:
-    # --- THIS IS THE LINE TO FIX ---
-    # We've added the "drive" scope to allow finding the sheet by name.
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
@@ -32,55 +55,51 @@ try:
         st.secrets["gcp_service_account"], scopes=scopes
     )
     gc = gspread.authorize(creds)
-    # *** IMPORTANT: UPDATE THIS WITH THE EXACT NAME OF YOUR GOOGLE SHEET ***
     gsheet = gc.open("LLM Recall Study Logs").sheet1
 except Exception as e:
     st.error(f"Failed to connect to Google Sheets. Please ensure your 'gcp_service_account' secret is configured correctly. Error: {e}")
     st.stop()
 
-
 # --- Core Functions ---
 def get_llm_response(chat_history, model="gpt-4"):
-    """
-    Get response from OpenAI API based on the entire conversation history.
-    """
     try:
         response = client.chat.completions.create(
-            model=model,
-            messages=chat_history, # Pass the whole history
-            max_tokens=1000
+            model=model, messages=chat_history, max_tokens=1000
         )
         return response.choices[0].message.content
     except Exception as e:
         st.error(f"Error calling LLM API: {str(e)}")
         return f"Error: {str(e)}"
 
-def log_interaction(user_id, prompt, response):
+# --- MODIFIED FUNCTION ---
+def log_interaction(user_id, turn_count, prompt, response, duration_ms):
     """
-    Logs a new interaction as a row in the configured Google Sheet.
+    Logs a new interaction with enriched data as a row in the configured Google Sheet.
     """
     try:
-        # Create a new row with the interaction data
+        # Create a new row with the enriched interaction data
         row_to_insert = [
             datetime.datetime.now().isoformat(),
             user_id,
+            turn_count,
             prompt,
             response,
+            len(prompt), # Prompt length
+            len(response), # Response length
+            round(duration_ms) # Response duration
         ]
         gsheet.append_row(row_to_insert)
     except Exception as e:
-        # Show an error in the app if logging fails, but don't stop the app
         st.error(f"Failed to log interaction to Google Sheet. Error: {e}")
 
-
 # --- Session State Initialization ---
-if 'anonymized_user_id' not in st.session_state:
+if "anonymized_user_id" not in st.session_state:
     st.session_state.anonymized_user_id = str(uuid.uuid4())
     st.session_state.chat_history = []
     st.session_state.page = "Landing"
+    st.session_state.turn_count = 0 # New: Initialize turn counter
 
 # --- UI Layout (Using Pages) ---
-
 def show_landing_page():
     st.title("Welcome to the Neuroeconomics Learning Study")
     st.header("About This Research Project")
@@ -130,21 +149,40 @@ def show_chat_interface():
             st.write(message["content"])
 
     if prompt := st.chat_input("Ask a question about neuroeconomics..."):
+        # --- MODIFIED INTERACTION LOGIC ---
+        
+        # Increment turn count
+        st.session_state.turn_count += 1
+        
+        # Display user prompt
         st.session_state.chat_history.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.write(prompt)
         
+        # Get LLM response and measure duration
         with st.spinner("Thinking..."):
+            start_time = time.time() # Start timer
             response = get_llm_response(st.session_state.chat_history)
-        
+            end_time = time.time() # End timer
+            duration_ms = (end_time - start_time) * 1000 # Calculate duration in milliseconds
+
+        # Display assistant response
         st.session_state.chat_history.append({"role": "assistant", "content": response})
         with st.chat_message("assistant"):
             st.write(response)
         
-        log_interaction(st.session_state.anonymized_user_id, prompt, response)
+        # Log the enriched interaction data
+        log_interaction(
+            user_id=st.session_state.anonymized_user_id,
+            turn_count=st.session_state.turn_count,
+            prompt=prompt,
+            response=response,
+            duration_ms=duration_ms
+        )
 
 # --- Main App Router ---
 if st.session_state.page == "Landing":
     show_landing_page()
 else:
     show_chat_interface()
+```
