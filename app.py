@@ -6,7 +6,6 @@ import gspread
 from google.oauth2.service_account import Credentials
 import google.generativeai as genai
 from PIL import Image
-from streamlit_copy_button import copy_button
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -62,7 +61,6 @@ def log_interaction(user_id, turn_count, attachment_type, prompt, response, dura
     except Exception as e:
         st.error(f"Failed to log interaction to Google Sheet. Error: {e}")
 
-# --- NEW HELPER FUNCTION ---
 def format_chat_history_for_download(history):
     """Formats the chat history into a readable string for downloading."""
     formatted_string = "Chat History\n"
@@ -113,7 +111,6 @@ def show_chat_interface():
         )
         st.divider()
         
-        # --- NEW: Download Button ---
         if st.session_state.chat_history:
             st.download_button(
                 label="📥 Download Chat History",
@@ -139,14 +136,15 @@ def show_chat_interface():
     for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
             text = message.get("text", "")
-            st.write(text)
             if "image" in message:
                 st.image(message["image"], width=200)
             
-            # --- NEW: Copy Button ---
-            if message["role"] == "assistant" and text:
-                copy_button(text, "Copy Response")
-    
+            # Use st.code for user text for consistency, but especially for assistant
+            if message["role"] == "user":
+                st.write(text)
+            else:
+                st.code(text, language=None) # Use st.code() for the copy button
+
     # --- Prompt Input and Processing ---
     if prompt := st.chat_input("Ask a question about your upload or the topic..."):
         st.session_state.turn_count += 1
@@ -160,24 +158,17 @@ def show_chat_interface():
             api_prompt_parts.append(img)
             user_message_to_history["image"] = uploaded_file
         
-        # Display user message immediately
-        with st.chat_message("user"):
-            st.write(prompt)
-            if uploaded_file is not None:
-                 st.image(uploaded_file, width=200)
-
-        # Get and display AI response
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                start_time = time.time()
-                response_text = get_gemini_response(api_prompt_parts)
-                end_time = time.time()
-                duration_ms = (end_time - start_time) * 1000
-                st.write(response_text)
-                copy_button(response_text, "Copy Response")
-
-        # Update session state history
+        # Add user message to history
         st.session_state.chat_history.append(user_message_to_history)
+        
+        # Get AI response
+        with st.spinner("Thinking..."):
+            start_time = time.time()
+            response_text = get_gemini_response(api_prompt_parts)
+            end_time = time.time()
+            duration_ms = (end_time - start_time) * 1000
+
+        # Add assistant response to history
         st.session_state.chat_history.append({"role": "assistant", "text": response_text})
         
         # Log the interaction
@@ -189,6 +180,8 @@ def show_chat_interface():
             response=response_text,
             duration_ms=duration_ms
         )
+        # Rerun to display the full conversation
+        st.rerun()
 
 # --- Main App Router ---
 if st.session_state.page == "Landing":
