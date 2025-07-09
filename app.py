@@ -6,11 +6,12 @@ import gspread
 from google.oauth2.service_account import Credentials
 import google.generativeai as genai
 from PIL import Image
+from st_copy_to_clipboard import st_copy_to_clipboard
 
 # --- Page Configuration ---
 st.set_page_config(
     page_title="Neuroeconomics Learning Study",
-    layout="wide"
+    layout="centered" # Use centered layout for a cleaner look
 )
 
 # --- Authentication and Clients ---
@@ -35,14 +36,17 @@ except Exception as e:
     st.error(f"Failed to connect to Google Sheets. Error: {e}")
     st.stop()
 
-# --- Core Functions ---
-def get_gemini_response(prompt_parts):
+# --- MODIFIED: Core Function for Streaming ---
+def get_gemini_response_stream(prompt_parts):
+    """
+    Yields chunks of the response from the Gemini API.
+    """
     try:
-        response = gemini_model.generate_content(prompt_parts)
-        return response.text
+        # Use stream=True to get a generator
+        for chunk in gemini_model.generate_content(prompt_parts, stream=True):
+            yield chunk.text
     except Exception as e:
-        st.error(f"Error calling Gemini API: {str(e)}")
-        return f"Error: {str(e)}"
+        yield f"Error calling Gemini API: {str(e)}"
 
 def log_interaction(user_id, turn_count, attachment_type, prompt, response, duration_ms):
     try:
@@ -97,20 +101,15 @@ def show_chat_interface():
     # --- Sidebar ---
     with st.sidebar:
         st.header("About this Study")
-        st.info(
-            "This research explores how interacting with an LLM affects knowledge recall. Your anonymous interaction logs are collected to help us understand which usage patterns lead to better learning outcomes."
-        )
+        st.info("This research explores how interacting with an LLM affects knowledge recall.")
         st.header("Contact Information")
         st.markdown(
             """
-            **Chief Investigator:**\n
-            Vangelis Tsiligkiris\n
-            For any questions or concerns, please contact:\n
+            **Chief Investigator:** Vangelis Tsiligkiris\n
             vangelis.tsiligiris@ntu.ac.uk
             """
         )
         st.divider()
-        
         if st.session_state.chat_history:
             st.download_button(
                 label="📥 Download Chat History",
@@ -121,55 +120,54 @@ def show_chat_interface():
 
     # --- Main Chat Interface ---
     st.title("Neuroeconomics Learning Assistant")
-    st.markdown("Use this interface to ask questions. This assistant is powered by **Google's Gemini model**.")
+    st.markdown("This assistant is powered by **Google's Gemini model**.")
     st.warning(f"Your Anonymous Participant ID: **{st.session_state.anonymized_user_id}**")
-
-    st.subheader("📝 Upload a File (Optional)")
-    uploaded_file = st.file_uploader("Upload an image to discuss with the AI", type=["png", "jpg", "jpeg"])
-    if uploaded_file:
-        st.image(uploaded_file, caption="Uploaded Image", width=300)
-
+    
     st.divider()
 
-    st.subheader("🤖 Chat with the AI")
-    # Display chat history with copy buttons
+    # Display chat history
     for message in st.session_state.chat_history:
         with st.chat_message(message["role"]):
-            text = message.get("text", "")
+            # Display text with Markdown rendering
+            st.markdown(message.get("text", ""))
             if "image" in message:
                 st.image(message["image"], width=200)
-            
-            # Use st.code for user text for consistency, but especially for assistant
-            if message["role"] == "user":
-                st.write(text)
-            else:
-                st.code(text, language=None) # Use st.code() for the copy button
 
     # --- Prompt Input and Processing ---
     if prompt := st.chat_input("Ask a question about your upload or the topic..."):
         st.session_state.turn_count += 1
         attachment_type = "Text Only"
         api_prompt_parts = [prompt]
-        user_message_to_history = {"role": "user", "text": prompt}
+        
+        # Display user message immediately
+        with st.chat_message("user"):
+            st.markdown(prompt)
+            # Check for an uploaded file in session state to redisplay
+            if "uploaded_file" in st.session_state and st.session_state.uploaded_file is not None:
+                st.image(st.session_state.uploaded_file, width=200)
 
-        if uploaded_file is not None:
+        # Handle file upload if it exists
+        if "uploaded_file" in st.session_state and st.session_state.uploaded_file is not None:
             attachment_type = "Image Upload"
-            img = Image.open(uploaded_file)
+            img = Image.open(st.session_state.uploaded_file)
             api_prompt_parts.append(img)
-            user_message_to_history["image"] = uploaded_file
-        
+            
         # Add user message to history
-        st.session_state.chat_history.append(user_message_to_history)
-        
-        # Get AI response
-        with st.spinner("Thinking..."):
+        st.session_state.chat_history.append({"role": "user", "text": prompt})
+
+        # Get and display AI response using streaming
+        with st.chat_message("assistant"):
             start_time = time.time()
-            response_text = get_gemini_response(api_prompt_parts)
+            # Use st.write_stream to display the response as it comes in
+            full_response = st.write_stream(get_gemini_response_stream(api_prompt_parts))
             end_time = time.time()
             duration_ms = (end_time - start_time) * 1000
+            
+            # Add a copy button for the completed response
+            st_copy_to_clipboard(full_response, "Copy response")
 
         # Add assistant response to history
-        st.session_state.chat_history.append({"role": "assistant", "text": response_text})
+        st.session_state.chat_history.append({"role": "assistant", "text": full_response})
         
         # Log the interaction
         log_interaction(
@@ -177,10 +175,20 @@ def show_chat_interface():
             turn_count=st.session_state.turn_count,
             attachment_type=attachment_type,
             prompt=prompt,
-            response=response_text,
+            response=full_response,
             duration_ms=duration_ms
         )
-        # Rerun to display the full conversation
+        
+        # Clear the uploaded file from state after processing
+        if "uploaded_file" in st.session_state:
+            st.session_state.uploaded_file = None
+            
+        st.rerun()
+
+    # Move file uploader here to interact with the new logic
+    uploaded_file = st.file_uploader("Upload an image (optional)", type=["png", "jpg", "jpeg"])
+    if uploaded_file is not None:
+        st.session_state.uploaded_file = uploaded_file
         st.rerun()
 
 # --- Main App Router ---
