@@ -113,8 +113,7 @@ def show_landing_page():
     st.title("Welcome to the Neuroeconomics Learning Study")
     st.header("About This Research Project")
     st.markdown(
-        "You have been invited to participate in a research project that explores how using a Large Language Model (LLM) "
-        "during a learning task affects the ability to recall knowledge 48 hours later. 
+        "You have been invited to participate in a research project that explores how using a Large Language Model (LLM) during a learning task affects the ability to recall knowledge 48 hours later. 
         Please do not use any other LLM (ChatGPT, Gemini, etc) during this study. It is important to use only this LLM which is based on Gemini."
     )
     st.info(f"Your anonymous participant ID is: **{st.session_state.anonymized_user_id}**\n\nPlease write this ID down.")
