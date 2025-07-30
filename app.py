@@ -139,8 +139,6 @@ def show_landing_page():
 def show_chat_interface():
     # Sidebar
     with st.sidebar:
-        st.header("About this Study")
-        st.info("This research explores how interacting with an LLM affects knowledge recall.")
         st.header("Resources")
         st.markdown(
             """
