@@ -125,6 +125,8 @@ def show_landing_page():
         **Please do not use any other LLM (ChatGPT, Gemini, etc.) or the web during this study. It is important to use only this LLM,
         which is based on Gemini.**
 
+        *Take note of your anonymous ID. Do not close this tab during the entire session.*
+
         During the study, you will be asked to complete two tasks. For one of the tasks, you will be asked to use the LLM. 
 
         When you are ready to submit your response to the task, please upload it in this folder :https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/EnoxSOEUDTxJpb60n6-Q7BcB9rCe99a1qgFYbBsbqvn1RA?e=h91hRy 
