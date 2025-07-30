@@ -128,8 +128,7 @@ def show_landing_page():
         **Take note of your anonymous ID. Do not close this tab during the entire session.**
 
         During the study, you will be asked to complete two tasks. For one of the tasks, you will be asked to use the LLM. 
-
-        When you are ready to submit your response to the task, please upload it in this folder :https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/EnoxSOEUDTxJpb60n6-Q7BcB9rCe99a1qgFYbBsbqvn1RA?e=h91hRy 
+        
         """
     )
     st.info(f"Your anonymous participant ID is: **{st.session_state.anonymized_user_id}**\n\nPlease write this ID down.")
@@ -142,6 +141,13 @@ def show_chat_interface():
     with st.sidebar:
         st.header("About this Study")
         st.info("This research explores how interacting with an LLM affects knowledge recall.")
+        st.header("Resources")
+        st.markdown(
+            """
+            Here you will be able to find the readings for the topic and the templates to complete the tasks
+            https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/Eojre-WuJsNMvWRazI-UMEoBllS3gpR0BtTRCfR3NtpfAQ?e=4MhLh9
+
+            """
         st.header("Submit your response to the tasks")
         st.markdown( 
             """
