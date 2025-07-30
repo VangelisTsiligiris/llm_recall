@@ -120,10 +120,14 @@ def show_landing_page():
     st.markdown(
         """
         You have been invited to participate in a research project that explores how using a Large Language Model (LLM)
-        during a learning task affects the ability to recall knowledge 48 hours later. 
+        during a learning task affects the ability to recall knowledge later. 
 
-        **Please do not use any other LLM (ChatGPT, Gemini, etc.) during this study. It is important to use only this LLM,
+        **Please do not use any other LLM (ChatGPT, Gemini, etc.) or the web during this study. It is important to use only this LLM,
         which is based on Gemini.**
+
+        During the study, you will be asked to complete two tasks. For one of the tasks, you will be asked to use the LLM. 
+
+        When 
         """
     )
     st.info(f"Your anonymous participant ID is: **{st.session_state.anonymized_user_id}**\n\nPlease write this ID down.")
