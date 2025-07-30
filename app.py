@@ -1,5 +1,6 @@
 import streamlit as st
-import uuid
+import random
+import string
 import datetime
 import time
 import gspread
@@ -34,6 +35,10 @@ try:
 except Exception as e:
     st.error(f"Failed to connect to Google Sheets. Error: {e}")
     st.stop()
+
+# --- Short ID Generator ---
+def generate_short_id(length=6):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 # --- Streaming Function ---
 def get_gemini_response_stream(prompt_parts):
@@ -76,7 +81,7 @@ def format_chat_history_for_download(history):
 
 # --- Session State Initialization ---
 if "anonymized_user_id" not in st.session_state:
-    st.session_state.anonymized_user_id = str(uuid.uuid4())
+    st.session_state.anonymized_user_id = generate_short_id()
     st.session_state.chat_history = []
     st.session_state.page = "Landing"
     st.session_state.turn_count = 0
