@@ -148,6 +148,7 @@ def show_chat_interface():
             https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/Eojre-WuJsNMvWRazI-UMEoBllS3gpR0BtTRCfR3NtpfAQ?e=4MhLh9
 
             """
+        )
         st.header("Submit your response to the tasks")
         st.markdown( 
             """
