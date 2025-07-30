@@ -127,7 +127,7 @@ def show_landing_page():
 
         During the study, you will be asked to complete two tasks. For one of the tasks, you will be asked to use the LLM. 
 
-        When 
+        When you are ready to submit your response to the task, please upload it in this folder :https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/EnoxSOEUDTxJpb60n6-Q7BcB9rCe99a1qgFYbBsbqvn1RA?e=h91hRy 
         """
     )
     st.info(f"Your anonymous participant ID is: **{st.session_state.anonymized_user_id}**\n\nPlease write this ID down.")
