@@ -169,7 +169,7 @@ def show_chat_interface():
                 mime="text/plain"
             )
 
-    st.title("Neuroeconomics Learning Assistant")
+    st.title("Google Gemini Learning Assistant")
     st.warning(f"Your Anonymous Participant ID: **{st.session_state.anonymized_user_id}**")
     st.divider()
 
