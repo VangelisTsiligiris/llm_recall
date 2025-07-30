@@ -143,8 +143,10 @@ def show_chat_interface():
         st.header("Contact Information")
         st.markdown(
             """
-            **Chief Investigator:** Vangelis Tsiligkiris  
+            **Principal Investigator:** Vangelis Tsiligkiris  
             vangelis.tsiligiris@ntu.ac.uk
+
+             When you are ready to submit your response to the task, please upload it in this folder :https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/EnoxSOEUDTxJpb60n6-Q7BcB9rCe99a1qgFYbBsbqvn1RA?e=h91hRy
             """
         )
         st.divider()
