@@ -125,7 +125,7 @@ def show_landing_page():
         **Please do not use any other LLM (ChatGPT, Gemini, etc.) or the web during this study. It is important to use only this LLM,
         which is based on Gemini.**
 
-        *Take note of your anonymous ID. Do not close this tab during the entire session.*
+        **Take note of your anonymous ID. Do not close this tab during the entire session.**
 
         During the study, you will be asked to complete two tasks. For one of the tasks, you will be asked to use the LLM. 
 
@@ -142,13 +142,17 @@ def show_chat_interface():
     with st.sidebar:
         st.header("About this Study")
         st.info("This research explores how interacting with an LLM affects knowledge recall.")
+        st.header("Submit your response to the tasks")
+        st.markdown( 
+            """
+             When you are ready to submit your response to the task, please upload it in this folder :https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/EnoxSOEUDTxJpb60n6-Q7BcB9rCe99a1qgFYbBsbqvn1RA?e=h91hRy
+             """
+        )
         st.header("Contact Information")
         st.markdown(
             """
             **Principal Investigator:** Vangelis Tsiligkiris  
-            vangelis.tsiligiris@ntu.ac.uk
-
-             When you are ready to submit your response to the task, please upload it in this folder :https://myntuac-my.sharepoint.com/:f:/g/personal/vangelis_tsiligiris_ntu_ac_uk/EnoxSOEUDTxJpb60n6-Q7BcB9rCe99a1qgFYbBsbqvn1RA?e=h91hRy
+            vangelis.tsiligiris@ntu.ac.uk            
             """
         )
         st.divider()
