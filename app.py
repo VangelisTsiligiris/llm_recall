@@ -17,7 +17,7 @@ st.set_page_config(
 # --- Authentication and Clients ---
 try:
     genai.configure(api_key=st.secrets["google_api"]["gemini_api_key"])
-    gemini_model = genai.GenerativeModel('gemini-2.0')
+    gemini_model = genai.GenerativeModel('gemma-3-1b-it')
 except Exception as e:
     st.error(f"Failed to configure Gemini API. Please check your 'google_api' secrets. Error: {e}")
     st.stop()
@@ -215,5 +215,6 @@ if st.session_state.page == "Landing":
     show_landing_page()
 else:
     show_chat_interface()
+
 
 
